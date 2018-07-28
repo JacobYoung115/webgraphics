@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Jacob 3JS rainbow cutout</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+        <script src="js/three.js"></script>
+        <script src="js/controls/OrbitControls.js"></script>
+		<script>
+            // Our Javascript will go here.
+            
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // var geometry = new THREE.BoxGeometry(1,1,1);
+            // var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 });
+            // var cube = new THREE.Mesh( geometry, material);
+            // scene.add(cube);
+
+            
+            var controls = new THREE.OrbitControls( camera );
+            camera.position.z = 10;
+            controls.update();
+
+            createParticles(1000);
+            
+            //Position setting test. 1. (on quadGeo) (NO) 2. OnQuadMesh before scene add (YES) 3. on quadMesh after scene add (YES)
+            animate();
+
+            function animObj(obj) {
+                obj.rotation.x += 0.01;
+                obj.rotation.y += 0.01;
+            }
+
+            function createParticles(numParticles) {
+                for (var i = 0; i < numParticles; i++) {
+                var quadGeo = new THREE.PlaneGeometry(1,1,1,1);
+                var quadMat = new THREE.MeshBasicMaterial({side: THREE.DoubleSide});
+                var hue = Math.random() * 1;
+                //quadMat.color.setHex(Math.random() * 0xffffff );
+
+                //quadMat.color.setHSL(hue, 1.0, 0.5);
+
+                var quad = new THREE.Mesh(quadGeo, quadMat);
+                
+                var xPos = Math.random() * 500 - 250;
+                var yPos = Math.random() * 500 - 250;
+
+                quad.position.x = xPos
+                quad.position.y = yPos;
+
+                if ((xPos > -200 && xPos < 200) && (yPos > -200 && yPos < 200)) {
+                    quad.position.z = 25;
+                    quadMat.color.setHSL(quad.position.z / 100.0, 1.0, 0.5);
+                }
+                if ((xPos > -150 && xPos < 150) && (yPos > -150 && yPos < 150)) {
+                    quad.position.z = 50;
+                    quadMat.color.setHSL(quad.position.z / 100.0, 1.0, 0.5);
+                }
+                if ((xPos > -100 && xPos < 100) && (yPos > -100 && yPos < 100)) {
+                    quad.position.z = 75;
+                    quadMat.color.setHSL(quad.position.z / 100.0, 1.0, 0.5);
+                }
+                if ((xPos > -50 && xPos < 50) && (yPos > -50 && yPos < 50)) {
+                    quad.position.z = 100;
+                    quadMat.color.setHSL(quad.position.z / 100.0, 1.0, 0.5);
+                }
+
+                scene.add(quad);
+                }
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                //animObj(cube);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            
+		</script>
+	</body>
+</html>

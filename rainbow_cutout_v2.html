@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Jacob 3JS rainbow cutout</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+        <script src="js/three.js"></script>
+        <script src="js/controls/OrbitControls.js"></script>
+		<script>
+            // Our Javascript will go here.
+            
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // var geometry = new THREE.BoxGeometry(1,1,1);
+            // var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 });
+            // var cube = new THREE.Mesh( geometry, material);
+            // scene.add(cube);
+
+            
+            var controls = new THREE.OrbitControls( camera );
+            camera.position.z = 10;
+            controls.update();
+
+            createParticles(10);
+            
+            //Position setting test. 1. (on quadGeo) (NO) 2. OnQuadMesh before scene add (YES) 3. on quadMesh after scene add (YES)
+            animate();
+
+            function animObj(obj) {
+                obj.rotation.x += 0.01;
+                obj.rotation.y += 0.01;
+            }
+
+            //rainbow_cutout_v2 goal: increase X, Y as i increases (also do so in negative directions)
+            //increase Z as I increases
+            //have hue match Z depth
+            function createParticles(numParticles) {
+                for (var i = 0; i < numParticles; i++) {
+                var quadGeo = new THREE.PlaneGeometry(1,1,1,1);
+                var quadMat = new THREE.MeshBasicMaterial({side: THREE.DoubleSide});
+                
+                //quadMat.color.setHex(Math.random() * 0xffffff );
+
+                //quadMat.color.setHSL(hue, 1.0, 0.5);
+
+                
+                for (var j = 0; j < numParticles; j++) {
+                    var quad = new THREE.Mesh(quadGeo, quadMat);
+                    var quad2 = new THREE.Mesh(quadGeo, quadMat);
+                    var quad3 = new THREE.Mesh(quadGeo, quadMat);
+                    var quad4 = new THREE.Mesh(quadGeo, quadMat);
+
+                    var hue = (i+j) / (numParticles + 1.0);
+                    quadMat.color.setHSL(hue * numParticles, 1.0, 0.5);
+
+                    quad.position.x = i;
+                    quad.position.y = j;
+                    
+
+                    quad2.position.x = -i
+                    quad2.position.y = j;
+
+                    quad3.position.x = i
+                    quad3.position.y = -j;
+
+                    quad4.position.x = -i
+                    quad4.position.y = -j;
+                    
+                    //Changing the Z position to be a different combination of values makes interesting effects
+                    quad.position.z = (i*j) / 4.0;
+                    quad2.position.z = (i*j) / 4.0;
+                    quad3.position.z = (i*j) / 4.0;
+                    quad4.position.z = (i*j) / 4.0;
+                    
+                    scene.add(quad);
+                    scene.add(quad2);
+                    scene.add(quad3);
+                    scene.add(quad4);
+                }
+                
+                
+
+                //Create quads
+                // var quad1 = new THREE.Mesh(quadGeo, quadMat);
+                
+                
+                // var xPos = i / 4.0;
+                // var yPos = i / 4.0;
+                
+                //position quads
+                // quad1.position.x = xPos
+                // quad1.position.y = yPos;
+
+                // quad2.position.x = -xPos
+                // quad2.position.y = yPos;
+
+                // quad3.position.x = xPos
+                // quad3.position.y = -yPos;
+
+                // quad4.position.x = -xPos
+                // quad4.position.y = -yPos;
+
+                // quad1.position.z = i / 4.0;
+                // quad2.position.z = i / 4.0;
+                // quad3.position.z = i / 4.0;
+                // quad4.position.z = i / 4.0;
+
+                
+
+                //add quads to scene
+                
+
+                // if ((xPos > -200 && xPos < 200) && (yPos > -200 && yPos < 200)) {
+                //     quad.position.z = 25;
+                //     quadMat.color.setHSL(quad.position.z / 100.0, 1.0, 0.5);
+                // }
+                // if ((xPos > -150 && xPos < 150) && (yPos > -150 && yPos < 150)) {
+                //     quad.position.z = 50;
+                //     quadMat.color.setHSL(quad.position.z / 100.0, 1.0, 0.5);
+                // }
+                // if ((xPos > -100 && xPos < 100) && (yPos > -100 && yPos < 100)) {
+                //     quad.position.z = 75;
+                //     quadMat.color.setHSL(quad.position.z / 100.0, 1.0, 0.5);
+                // }
+                // if ((xPos > -50 && xPos < 50) && (yPos > -50 && yPos < 50)) {
+                //     quad.position.z = 100;
+                //     quadMat.color.setHSL(quad.position.z / 100.0, 1.0, 0.5);
+                // }
+
+                
+                }
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                //animObj(cube);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            
+		</script>
+	</body>
+</html>

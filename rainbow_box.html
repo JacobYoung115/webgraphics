@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Jacob 3JS rainbow cutout</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+        <script src="js/three.js"></script>
+        <script src="js/controls/OrbitControls.js"></script>
+		<script>
+            // Our Javascript will go here.
+            
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // var geometry = new THREE.BoxGeometry(1,1,1);
+            // var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 });
+            // var cube = new THREE.Mesh( geometry, material);
+            // scene.add(cube);
+
+            
+            var controls = new THREE.OrbitControls( camera );
+            camera.position.z = 10;
+            controls.update();
+
+
+            //Don't input more than 20.
+            var box = createRainbowBox(10);
+            
+            //Position setting test. 1. (on quadGeo) (NO) 2. OnQuadMesh before scene add (YES) 3. on quadMesh after scene add (YES)
+            animate();
+
+            function animObj(obj) {
+                obj.rotation.x += 0.01;
+                obj.rotation.y += 0.01;
+            }
+
+            //rainbow_cutout_v4 goal: increase X, Y as i increases (also do so in negative directions)
+            //increase Z as I increases
+            //have hue match Z depth
+            function createLayers(numLayers) {
+                var group = new THREE.Group();
+                var quadGeo = new THREE.PlaneGeometry(1,1,1,1);
+                
+                for (var i = 0; i < numLayers; i++) {
+                    for (var j = 0; j < numLayers; j++) {
+                        var quadMat = new THREE.MeshBasicMaterial();
+                        var quad = new THREE.Mesh(quadGeo, quadMat);
+                        var quad2 = new THREE.Mesh(quadGeo, quadMat);
+                        var quad3 = new THREE.Mesh(quadGeo, quadMat);
+                        var quad4 = new THREE.Mesh(quadGeo, quadMat);
+
+                        quad.position.x = i;
+                        quad.position.y = j;
+                        
+                        quad2.position.x = -i
+                        quad2.position.y = j;
+
+                        quad3.position.x = i
+                        quad3.position.y = -j;
+
+                        quad4.position.x = -i
+                        quad4.position.y = -j;
+                        
+                        //Changing the Z position to be a different combination of values makes interesting effects
+                        //Here we average the value of i and J
+                        var maxZPos = Math.max(i,j);
+                        var hue = Math.max(i,j) / numLayers;
+
+                        quad.position.z = maxZPos;
+                        quad2.position.z = maxZPos;
+                        quad3.position.z = maxZPos;
+                        quad4.position.z = maxZPos;
+                        quadMat.color.setHSL(hue, 1.0, 0.5);
+
+                        group.add(quad);
+                        group.add(quad2);
+                        group.add(quad3);
+                        group.add(quad4);
+                    }
+                }
+                return group;
+            }
+
+            function createRainbowBox(numLayers) {
+                var rainbowBox = new THREE.Group();
+
+                var front = createLayers(numLayers);
+                front.position.z = 0.5;
+
+                var back = createLayers(numLayers);
+                back.rotation.y = 180 * Math.PI / 180.0;
+                back.position.z = -0.5;
+
+                var left = createLayers(numLayers);
+                left.rotation.y = -90 * Math.PI / 180.0;
+                left.position.x = -0.5;
+
+                var right = createLayers(numLayers);
+                right.rotation.y = 90 * Math.PI / 180.0;
+                right.position.x = 0.5;
+
+                var top = createLayers(numLayers);
+                top.rotation.x = -90 * Math.PI / 180.0;
+                top.position.y = 0.5;
+
+                var bottom = createLayers(numLayers);
+                bottom.rotation.x = 90 * Math.PI / 180.0;
+                bottom.position.y = -0.5;
+
+                rainbowBox.add(front);
+                rainbowBox.add(back);
+                rainbowBox.add(left);
+                rainbowBox.add(right);
+                rainbowBox.add(top);
+                rainbowBox.add(bottom);
+                
+                scene.add(rainbowBox);
+
+                return rainbowBox;    
+            }
+
+            function animate() {
+                requestAnimationFrame(animate);
+                console.log("Animated");
+                animObj(box);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            
+		</script>
+	</body>
+</html>

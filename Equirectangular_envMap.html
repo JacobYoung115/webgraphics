@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Jacob 3JS mouseEvents</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+        <script src="js/three.js"></script>
+        <script src="js/controls/OrbitControls.js"></script>
+        <script src="./node_modules/dat.gui/build/dat.gui.js"></script>
+		<script>
+            // Our Javascript will go here.
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            var renderer = new THREE.WebGLRenderer();
+            var clock = new THREE.Clock();
+            var delta = clock.getDelta();
+            
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            window.addEventListener('resize', onWindowResize, false);
+
+            //Creating a skybox;
+            // var path = "Yokohama/";
+            // var urls = [path + "posx.jpg", path + "negx.jpg", path + "posy.jpg", path + "negy.jpg",
+            //             path + "posz.jpg", path + "negz.jpg"]
+
+            //var textureCube = THREE.CubeTextureLoader( urls)
+
+            // var reflectionCube = new THREE.CubeTextureLoader()
+            // .setPath("Yokohama/")
+            // .load(  ['posx.jpg',
+            //         'negx.jpg',
+            //         'posy.jpg',
+            //         'negy.jpg',
+            //         'posz.jpg',
+            //         'negz.jpg']);
+            //scene.background = reflectionCube;
+
+            //Here we're trying to set the boxGeo mesh material to our material array
+        //     var imagePrefix = "Yokohama/";
+        //     var directions = ["posx.jpg",
+        //             "negx.jpg",
+        //             "posy.jpg",
+        //             "negy.jpg",
+        //             "posz.jpg",
+        //             "negz.jpg"];
+        //     var materialArray = [];
+        //     for (let i = 0; i < 6; i++){
+        //         materialArray.push( new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load( imagePrefix + directions[i]), side: THREE.BackSide}));
+        //         //console.log(materialArray[i].map);
+        //     }
+        //    // var skyboxMat = new THREE.MeshFaceMaterial(materialArray);
+        //     var skyboxGeo = new THREE.CubeGeometry(1000,1000,1000);
+        //     var skybox = new THREE.Mesh(skyboxGeo, materialArray);
+        //     //console.log(skybox);
+        //     scene.add(skybox);
+
+            //So this method of adding a material to each plane is definitely doable, but would be really stupid and a waste of time
+            // var plane = new THREE.PlaneGeometry(5,5);
+            // var material = new THREE.MeshBasicMaterial({map: new THREE.TextureLoader().load('Yokohama/posx.jpg')});
+            // var planeMesh = new THREE.Mesh(plane, material);
+            // scene.add(planeMesh);
+
+            //This method takes an equirectangular projection map to make a skybox
+            var eqSphereGeo = new THREE.SphereBufferGeometry(500, 60, 40);
+            eqSphereGeo.scale(-1, 1, 1);
+
+            var eqSphereMat = new THREE.MeshBasicMaterial({
+                map: new THREE.TextureLoader().load('Spherical_projection_maps/Lamar_home_inside.jpg')
+            });
+
+            var eqSphereMesh = new THREE.Mesh(eqSphereGeo, eqSphereMat);
+            scene.add(eqSphereMesh);
+
+
+            var controls = new THREE.OrbitControls( camera );
+            camera.position.z = 10;
+
+            var groundPlaneGeo = new THREE.PlaneGeometry(100,100,10,10);
+            var groundPlaneMat = new THREE.MeshBasicMaterial({color: 0x0000ff, wireframe: true});
+            var groundPlaneMesh = new THREE.Mesh(groundPlaneGeo, groundPlaneMat);
+            
+            groundPlaneMesh.rotation.x = 90 * Math.PI / 180.0;
+            groundPlaneMesh.position.y = -10;
+
+            scene.add(groundPlaneMesh);
+
+            
+            //Position setting test. 1. (on quadGeo) (NO) 2. OnQuadMesh before scene add (YES) 3. on quadMesh after scene add (YES)
+            // var sphereGeo = new THREE.SphereGeometry(10, 32, 16);
+            
+            // var sphereMat = new THREE.MeshBasicMaterial({color: 0x00ff00});
+            // var wireframeMat = new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true, transparent: true});
+            // var multiMaterial = [sphereMat, wireframeMat];
+
+            // //Create the wireframe sphere
+            // var sphereWire = new THREE.Mesh(sphereGeo.clone(), wireframeMat);
+            // scene.add(sphereWire);
+
+            // //Create the regular sphere and add the wireframe over it
+            // //regular sphere
+            // var sphere = new THREE.Mesh(sphereGeo.clone(), sphereMat);
+            // sphere.position.set(30, 0, 0);
+            // scene.add(sphere);
+            // //wireframe
+            // var sphereWire2 = new THREE.Mesh(sphereGeo.clone(), wireframeMat);
+            // sphereWire2.position.x = sphere.position.x;
+            // scene.add(sphereWire2);
+
+            // //Now create a sphere using an array containing both materials
+            // var sphere2 = new THREE.Mesh( sphereGeo, [sphereMat, wireframeMat] );
+            // sphere2.position.set(60, 30, 0);
+            // scene.add( sphere2 );
+
+            // //printing the object with method toJSON is very helpful for reading the object's properties
+            // console.log(sphere2.toJSON());
+            
+            function removeAllObjects() {
+                for (let i = 0; i < scene.children.length; i++) {
+                    let child = scene.children[i];
+                    if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
+                        scene.remove(child);
+                    }
+                }
+            }
+
+            function removeObjFromScene(objName) {
+                scene.remove(scene.getObjectByName(objName));
+            }
+
+            function animObj(obj) {
+                obj.rotation.x += 0.01;
+                obj.rotation.y += 0.01;
+            }
+
+            function animate(delta) {
+                requestAnimationFrame(animate);
+
+                renderer.render(scene, camera);
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            //console.log(scene);
+            //console.log(scene.children[0]);
+            animate(delta);
+		</script>
+	</body>
+</html>

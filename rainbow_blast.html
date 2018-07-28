@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Jacob 3JS</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+        <script src="js/three.js"></script>
+        <script src="js/controls/OrbitControls.js"></script>
+		<script>
+            // Our Javascript will go here.
+            
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // var geometry = new THREE.BoxGeometry(1,1,1);
+            // var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 });
+            // var cube = new THREE.Mesh( geometry, material);
+            // scene.add(cube);
+
+            
+            var controls = new THREE.OrbitControls( camera );
+            camera.position.z = 10;
+            controls.update();
+            //cameraControls.target.set(0,0,0);
+
+            //createParticles(1000);
+            
+            //Position setting test. 1. (on quadGeo) (NO) 2. OnQuadMesh before scene add (YES) 3. on quadMesh after scene add (YES)
+
+            //var quadGroup = new THREE.Group();
+
+
+            for (var i = 0; i < 1000; i++) {
+                var quadGeo = new THREE.PlaneGeometry(1,1,1,1);
+                var quadMat = new THREE.MeshBasicMaterial({side: THREE.DoubleSide});
+                var hue = Math.random() * 1;
+                //quadMat.color.setHex(Math.random() * 0xffffff );
+
+                quadMat.color.setHSL(hue, 1.0, 0.5);
+                console.log("Hue: " + hue);
+                var quad = new THREE.Mesh(quadGeo, quadMat);
+                scene.add(quad);
+
+
+                quad.position.set(hue * (Math.random() * 200 - 100), hue * (Math.random() * 200 - 100), hue * 100);
+                
+                // if (hue > 0.0) {
+                //     quad.position.set(Math.random() * 600 -300, Math.random() * 600 - 300, hue * 500);
+                //     console.log("Filter triggered 1");
+                // }
+                // if (hue > 0.2) {
+                //     quad.position.set(Math.random() * 500 - 250, Math.random() * 500 - 250, hue * 500);
+                //     console.log("Filter triggered 2");
+                // }
+                // if (hue > 0.4) {
+                //     quad.position.set(Math.random() * 400 - 200, Math.random() * 400 - 200, hue * 500);
+                //     console.log("Filter triggered 3");
+                // }
+                // if (hue > 0.6) {
+                //     quad.position.set(Math.random() * 300 - 150, Math.random() * 300 - 150, hue * 500);
+                //     console.log("Filter triggered 4");
+                // }
+                // if (hue > 0.8) {
+                //     quad.position.set(Math.random() * 100 - 50, Math.random() * 100 - 50, hue * 500);
+                //     console.log("Filter triggered 5");
+                // }
+                
+                // if (hue < 0.8) {
+                //     quad.position.set(Math.random() * 200 - 100, Math.random() * 200 - 100, hue * 500);
+                // }
+                
+                //quad.position.set(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5, hue * 5);
+            }
+
+            //1. on quadGeo (doesn't work)
+            //quadGeo.x = 500;
+            //quadGeo.y = 1000;
+
+            
+            //var quad2 = new THREE.Mesh(quadGeo, quadMat);
+
+            //quadGroup.add(quad);
+            //quadGroup.add(quad2);
+
+            //quadGroup.position.y = 1;
+            //scene.add(quadGroup);
+            
+            //3. on quadMesh after scene add
+            //quad.position.x = 5;
+            //quad2.position.x = -5;
+
+            //quadGroup.position.y = 1;
+            //quad.position.y = -1;
+
+            animate();
+
+            function animObj(obj) {
+                obj.rotation.x += 0.01;
+                obj.rotation.y += 0.01;
+            }
+
+            // function createParticles(numParticles) {
+            //     //var particles = numParticles;
+            //     //var particleParent = new THREE.Geometry();
+            //     var group = new THREE.Group();
+                
+            //     //pMaterial.color.setRGB(255,255,255);
+
+            //     for (var p=0; p < numParticles; p++) {
+            //         // var pMaterial = new THREE.PointsMaterial({
+            //         //     size: 20,
+            //         //     sizeAttenuation: true
+            //         // });
+            //         var value = Math.random() * 2000.0 - 1000.0;
+            //         var mappedValue = Math.round(Math.abs(value)) / 1000.0;
+
+            //         var particles = new THREE.PlaneGeometry(1,1,1,1);
+            //         var pMat = new THREE.MeshBasicMaterial({side: THREE.DoubleSide});
+            //         //pMat.color.setHSL(mappedValue, 1.0, 0.5);
+            //         pMat.color.setRGB(255,0,0);
+
+            //         //var particle = new THREE.Vector3();
+                    
+            //         //particles.vertices.push(particle);
+            //         //particles.vertices.push(particle);
+            //         var star = new THREE.Mesh(particles, pMat);
+            //         star.x = Math.random() * 2000.0 - 1000.0;
+            //         star.y = Math.random() * 2000.0 - 1000.0;
+            //         star.z = Math.random() * 2000.0 - 1000.0;
+
+            //         group.add(star);
+            //         //console.log("unmapped Value: " + value);
+            //         //console.log("mapped Value: " + mappedValue);
+
+            //         //pMaterial.color.setHSL(mappedValue, 1.0, 0.5)
+                    
+            //     }
+            //     scene.add(group);
+            //     //var particleSystem = new THREE.Points(particles);
+            //     //particleSystem.material
+            //         //particleSystem.particle.material.color.setHSL(particle.z / 1000.0, 1.0, 5.0);
+            //         //scene.add(particleSystem);
+               
+            // }
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                //animObj(cube);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            
+		</script>
+	</body>
+</html>

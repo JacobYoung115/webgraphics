@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Jacob 3JS mouseEvents</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+        <script src="js/three.js"></script>
+        <script src="js/controls/OrbitControls.js"></script>
+        <script src="./node_modules/dat.gui/build/dat.gui.js"></script>
+        <script src="./node_modules/lodash/lodash.js"></script>
+		<script>
+            // Our Javascript will go here.
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            var renderer = new THREE.WebGLRenderer();
+            var clock = new THREE.Clock();
+            var delta = clock.getDelta();
+
+            var targetList = [];
+            
+            var raycaster = new THREE.Raycaster();
+            var mouse = new THREE.Vector2(), INTERSECTED;
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            window.addEventListener('resize', onWindowResize, false);
+
+            //This method takes an equirectangular projection map to make a skybox
+            var eqSphereGeo = new THREE.SphereBufferGeometry(500, 60, 40);
+            eqSphereGeo.scale(-1, 1, 1);
+
+            var eqSphereMat = new THREE.MeshBasicMaterial({
+                map: new THREE.TextureLoader().load('Spherical_projection_maps/Lamar_home_inside.jpg')
+            });
+
+            var eqSphereMesh = new THREE.Mesh(eqSphereGeo, eqSphereMat);
+            scene.add(eqSphereMesh);
+
+
+            var controls = new THREE.OrbitControls( camera );
+            camera.position.z = 10;
+            
+            ////////////////////////////////////////////////////////////////
+
+            
+            var groundPlaneMat = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: THREE.FaceColors });
+            var groundPlaneGeo = new THREE.PlaneGeometry(100,100,10,10);
+            
+            for ( var i = 0; i < groundPlaneGeo.faces.length; i++ ) 
+            {
+                face = groundPlaneGeo.faces[ i ];	
+                face.color.setRGB( 0, 0, 0.8 * Math.random() + 0.2 );		
+            }
+
+        
+            var groundPlaneMesh = new THREE.Mesh(groundPlaneGeo, groundPlaneMat);
+            
+            
+            groundPlaneMesh.rotation.x = -90 * Math.PI / 180.0;
+            groundPlaneMesh.position.y = -10;
+
+            //groundPlaneMesh.dynamic = true;
+            scene.add(groundPlaneMesh);
+
+            targetList.push(groundPlaneMesh);
+
+            ////////////////////////////////////////////////////////////////
+
+            //Intialize object to perform world/screen calculations
+            //projector = new THREE.Projector();
+
+            //When the mouse clicks, call the given function which changes the face color
+            document.addEventListener('mousedown', onDocumentMouseDown, false);
+
+            //Create a onhover color effect
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+
+
+
+            
+            //Position setting test. 1. (on quadGeo) (NO) 2. OnQuadMesh before scene add (YES) 3. on quadMesh after scene add (YES)
+            // //printing the object with method toJSON is very helpful for reading the object's properties
+            // console.log(obj.toJSON());
+            
+            function onDocumentMouseDown( event ) { 
+                event.preventDefault();
+                console.log("Click.");
+
+                //update the mouse variable
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+                
+
+                raycaster.setFromCamera(mouse, camera);
+                //Create an array containing all objects in the scene with which the ray intersects
+                var intersects = raycaster.intersectObjects( targetList );
+                //console.log(scene.toJSON());
+                if (intersects.length > 0) {
+                    //console.log("Hit @" + toString(intersects[0].point));
+                    //console.log(intersects[0].face);
+                    //change the color of the closest face.
+                    let selected = intersects[0];
+                    //intersects[0].object.mesh.dynamic = true;
+                    selected.face.color.setRGB( 1.0, 0, 0);
+                    // = {r: 255, g: 0, b: 0};
+                    
+                    //THIS PART IS ESSENTIAL TO UPDATE THE COLOR
+                    selected.object.geometry.elementsNeedUpdate = true;
+                    //colorNeedsUpdate = true;
+                }
+            }
+
+            function onDocumentMouseMove( event ) {
+                event.preventDefault();
+
+                //update the mouse variable
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                //Create an array containing all objects in the scene with which the ray intersects
+                var intersects = raycaster.intersectObjects( targetList );
+                //console.log(scene.toJSON());
+
+                //if there is an intersection...
+                if (intersects.length > 0) {
+                    //console.log("Hit @" + toString(intersects[0].point));
+
+                    //INTERSECTED is undefined at first... So it WON'T equal the intersected object.
+                    if (INTERSECTED != intersects[0]) {
+                        //Idk what this means yet
+                        if (INTERSECTED) {
+                            //set the intersected material hex to the current hex
+                            INTERSECTED.face.color.setHex(INTERSECTED.currentHex);
+                        }
+
+                        //set intersected equal to the closest intersected objected.
+                        INTERSECTED = intersects[0];
+                        INTERSECTED.currentHex = INTERSECTED.face.color.getHex();
+                        INTERSECTED.face.color.setHex(0x7777ff);
+                        INTERSECTED.object.geometry.elementsNeedUpdate = true;
+                        //set intersected's currentHex value to the intersected object's hex
+
+                        //set intersected's actual color to red.
+                        // console.log("INTERSECTED AFTER CHANGE");
+                        
+                        // console.log(INTERSECTED.color.getStyle());
+                    }
+
+                    //change the color of the closest face.
+                    // let selected = intersects[0];
+                    //var whiteColor = {r: 125, g: 125, b: 125};
+                    //var selectedColor = selected.face.color;
+                    //console.log(selected.face.color);
+
+                    //setRGB sets values between 0 and 1.0
+                    //selected.face.color.setRGB(1.0, 1.0, 1.0);
+                    //.setRGB(125,125,125);
+                    //var selectedColor = selected.face.color;
+                    // if(_.isEqual(selected.face.color, whiteColor)) {
+                    //     console.log("COLOR IS ALREADY WHITE");
+                    //     console.log(selected.face.color);
+                    // }
+                    //THIS PART IS ESSENTIAL TO UPDATE THE COLOR
+                    
+                    //colorNeedsUpdate = true;
+
+                    //Now that we can set the color, we need to get the original color of the face and set
+                    //it back to the original color after we're done scrolling over.
+
+                    //AKA If it it NO LONGER intersecting, change it back to its original color
+                    //so we need to grab an original color, and then check if the current color is != to the original.
+                }
+                else {
+                    if (INTERSECTED) {
+                        INTERSECTED.face.color.setHex( INTERSECTED.currentHex );
+                    }
+                    INTERSECTED = null;
+                }
+            }
+
+            function toString(v) {
+                return "[ " + v.x + ", " + v.y + ", " + v.z + " ]";
+            }
+
+            function removeAllObjects() {
+                for (let i = 0; i < scene.children.length; i++) {
+                    let child = scene.children[i];
+                    if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
+                        scene.remove(child);
+                    }
+                }
+            }
+
+            function removeObjFromScene(objName) {
+                scene.remove(scene.getObjectByName(objName));
+            }
+
+            function animObj(obj) {
+                obj.rotation.x += 0.01;
+                obj.rotation.y += 0.01;
+            }
+            
+            function render() {
+                //find intersections
+
+                //create a ray with origins at the mouse position
+                // and direction into the scene (camera direection)
+                //var vector = new THREE.Vector3(mouse.x, mouse.y, 1);
+                //projector.unprojectVector(vector, camera);
+                //var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+
+                
+
+                //if there is one (or more) intersections
+                // if (intersects.length > 0) {
+                
+                // }
+
+                // for (var i = 0; i < intersects.length; i++) {
+                //     console.log("Hit @" + toString(intersects[0].point));
+                //     intersects[0].face.color.setRGB(255,0,0);
+                //     intersects[0].object.geometry.colorNeedsUpdate = true;
+                // }
+                renderer.render(scene, camera);
+            }
+
+            function animate(delta) {
+                requestAnimationFrame(animate);
+
+                render();
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            //console.log(scene);
+            //console.log(scene.children[0]);
+            animate(delta);
+		</script>
+	</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Jacob 3JS rainbow box</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+        <script src="js/three.js"></script>
+        <script src="js/controls/OrbitControls.js"></script>
+        <script src="./node_modules/dat.gui/build/dat.gui.js"></script>
+		<script>
+            var control = function() {
+                this.radius = 5.0,
+                this.widthSegments = 8.0,
+                this.heightSegments = 8.0
+            }
+
+            var text = new control();
+            var gui = new dat.GUI();
+
+            var radiusController = gui.add(text, 'radius').min(1.0).max(16).step(1.0);
+            var widthController = gui.add(text, 'widthSegments').min(3.0).max(32.0).step(1.0);
+            var heightController = gui.add(text, 'heightSegments').min(2.0).max(32.0).step(1.0);
+
+            // Our Javascript will go here.
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            var renderer = new THREE.WebGLRenderer();
+            var clock = new THREE.Clock();
+            var delta = clock.getDelta();
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            //Creating a skybox;
+            // var path = "Yokohama/";
+            // var urls = [path + "posx.jpg", path + "negx.jpg", path + "posy.jpg", path + "negy.jpg",
+            //             path + "posz.jpg", path + "negz.jpg"]
+
+            //var textureCube = THREE.CubeTextureLoader( urls)
+
+            var reflectionCube = new THREE.CubeTextureLoader()
+            .setPath("Yokohama/")
+            .load(  ['posx.jpg',
+                    'negx.jpg',
+                    'posy.jpg',
+                    'negy.jpg',
+                    'posz.jpg',
+                    'negz.jpg']);
+            scene.background = reflectionCube;
+
+            //var geometry = new THREE.BoxGeometry(1,1,1);
+            //reflectionCube.mapping = THREE.CubeRefractionMapping;
+            // radiusController.onChange(function(value) {
+            //     console.log("radius changed to: " + value);
+            //     createSphere(value, widthController.getValue(), heightController.getValue());
+            // });
+
+            //Idea: create a function to create the line (wireframe) and the sphere
+
+
+
+            function createSphere(radius, width, height) {
+                var geometry = new THREE.SphereBufferGeometry(radiusController.getValue(), widthController.getValue(), heightController.getValue());
+                var wireframe = new THREE.WireframeGeometry(geometry);
+                var line = new THREE.LineSegments(wireframe);
+                line.name = "pizza";
+
+                line.material.depthTest = true;
+                line.material.opacity = 1.0;
+                line.material.transparent = true;
+                line.material.color.set("#ffffff");
+
+                scene.add(line);
+                
+                //geometry.radius *= 0.9;
+                var material = new THREE.MeshBasicMaterial({color: 0x6666ee});
+                var sphere = new THREE.Mesh(geometry, material);
+                scene.add(sphere);
+                // console.log("Sphere created");
+
+                //scene.remove(sphere);
+                //console.log("Sphere removed");
+                
+                //return sphere;
+            }
+            //var sphere = createSphere(radiusController.getValue(), widthController.getValue(), heightController.getValue());
+            
+            createSphere();
+            
+            
+            
+            var controls = new THREE.OrbitControls( camera );
+            camera.position.z = 10;
+            controls.update();
+            
+            //Position setting test. 1. (on quadGeo) (NO) 2. OnQuadMesh before scene add (YES) 3. on quadMesh after scene add (YES)
+            animate(delta);
+            
+            function removeAllObjects() {
+                for (let i = 0; i < scene.children.length; i++) {
+                    let child = scene.children[i];
+                    if (child instanceof THREE.Mesh || child instanceof THREE.LineSegments) {
+                        scene.remove(child);
+                    }
+                }
+            }
+
+            function removeObjFromScene(objName) {
+                scene.remove(scene.getObjectByName(objName));
+            }
+
+            function animObj(obj) {
+                obj.rotation.x += 0.01;
+                obj.rotation.y += 0.01;
+            }
+
+            function createLayers(numLayers) {
+                var group = new THREE.Group();
+                for (var i = 0; i < numLayers; i++) {
+                        var quadGeo = new THREE.PlaneGeometry(1 ,i * 2,1,1);
+                        var quadGeo2 = new THREE.PlaneGeometry(i * 2,1,1,1);
+                        var quadMat = new THREE.MeshBasicMaterial({color: 0xffffff, envMap: reflectionCube, refractionRatio: 0.95});
+                        //= new THREE.MeshBasicMaterial({side: THREE.DoubleSide});
+                        
+
+                        var quad = new THREE.Mesh(quadGeo, quadMat);
+                        var quad2 = new THREE.Mesh(quadGeo, quadMat);
+                        var quad3 = new THREE.Mesh(quadGeo2, quadMat);
+                        var quad4 = new THREE.Mesh(quadGeo2, quadMat);
+
+                        quad.position.x = i + 0.5;
+                        quad.position.y = 0;
+                        
+                        quad2.position.x = -i - 0.5;
+                        quad2.position.y = -0;
+
+                        quad3.position.x = 0;
+                        quad3.position.y = i + 0.5;
+
+                        quad4.position.x = 0;
+                        quad4.position.y = -i - 0.5;
+                        
+                        //Changing the Z position to be a different combination of values makes interesting effects
+                        //var hue = i / numLayers;
+
+                        quad.position.z = i;
+                        quad2.position.z = i;
+                        quad3.position.z = i;
+                        quad4.position.z = i;
+
+                        //quadMat.color.setRGB(hue, hue, hue);
+                        //quadMat.color.setHSL(hue, 1.0, 0.5);
+
+                        group.add(quad);
+                        group.add(quad2);
+                        group.add(quad3);
+                        group.add(quad4);
+                }
+                return group;
+            }
+
+            function createRainbowBox(numLayers) {
+                var rainbowBox = new THREE.Group();
+
+                var front = createLayers(numLayers);
+                
+                var back = createLayers(numLayers);
+                back.rotation.y = 180 * Math.PI / 180.0;
+
+                var left = createLayers(numLayers);
+                left.rotation.y = -90 * Math.PI / 180.0;
+
+                var right = createLayers(numLayers);
+                right.rotation.y = 90 * Math.PI / 180.0;
+
+                var top = createLayers(numLayers);
+                top.rotation.x = -90 * Math.PI / 180.0;
+                top.rotation.z = -90 * Math.PI / 180.0;
+
+                var bottom = createLayers(numLayers);
+                bottom.rotation.x = 90 * Math.PI / 180.0;
+                bottom.rotation.z = -90 * Math.PI / 180.0;
+
+                rainbowBox.add(front);
+                rainbowBox.add(back);
+                rainbowBox.add(left);
+                rainbowBox.add(right);
+                rainbowBox.add(top);
+                rainbowBox.add(bottom);
+                
+                scene.add(rainbowBox);
+
+                return rainbowBox;    
+            }
+            
+
+            function animate(delta) {
+                requestAnimationFrame(animate);
+                //var interactiveSphere = createSphere();
+                radiusController.onChange(function(value) {
+                    console.log("radius changed to: " + value);
+                    removeAllObjects();
+                    createSphere(value, widthController.getValue(), heightController.getValue());
+                });
+
+                widthController.onChange(function(value) {
+                    console.log("width changed to: " + value);
+                    removeAllObjects();
+                    createSphere(radiusController.getValue(), value, heightController.getValue());
+                });
+
+                heightController.onChange(function(value) {
+                    console.log("height changed to: " + value);
+                    removeAllObjects();
+                    createSphere(radiusController.getValue(), widthController.getValue(), value);
+                });
+
+                renderer.render(scene, camera);
+            }
+            
+            //console.log(scene);
+            //console.log(scene.children[0]);
+
+		</script>
+	</body>
+</html>
