@@ -14,6 +14,14 @@
         <script src="./node_modules/dat.gui/build/dat.gui.js"></script>
         <script src="./node_modules/lodash/lodash.js"></script>
 		<script>
+
+            // NOTE: THE TITLE OF THIS FILE IS IN REFERENCE TO TRYING TO MAKE AN INIFINITE ZOOM
+            // Based off of the graphic in: https://www.youtube.com/watch?annotation_id=annotation_167541365&feature=iv&src_vid=7UNLgPIiWAg&v=blSTTFS8Uco
+            //Found at time: 4:55
+
+            // Idea: Use 3 wireframe meshes that are mapped to the scroll wheel. Once it gets large, fade out
+            //continuing reusing the sizes of the mesh over and over.
+
             // Our Javascript will go here.
             var scene = new THREE.Scene();
             var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -107,6 +115,8 @@
                     let selected = intersects[0];
                     //intersects[0].object.mesh.dynamic = true;
                     selected.face.color.setRGB( 0.2, 0.2, 1.0);
+                    //console.log("[" + selected.face.a + ", " + selected.face.b + ", " + selected.face.c + "]");
+                    console.log(selected);
                     // = {r: 255, g: 0, b: 0};
                     
                     //THIS PART IS ESSENTIAL TO UPDATE THE COLOR
@@ -114,7 +124,8 @@
                     //colorNeedsUpdate = true;
                 }
             }
-
+            
+            //The goal of change poly full is to get the correct adjacent face and highlight it too
             function onDocumentMouseMove( event ) {
                 event.preventDefault();
 
@@ -138,43 +149,16 @@
                             //set the intersected material hex to the current hex
                             INTERSECTED.face.color.setHex(INTERSECTED.currentHex);
                         }
-
                         //set intersected equal to the closest intersected objected.
                         INTERSECTED = intersects[0];
                         INTERSECTED.currentHex = INTERSECTED.face.color.getHex();
                         INTERSECTED.face.color.setHex(0x7777ff);
                         INTERSECTED.object.geometry.elementsNeedUpdate = true;
-                        //set intersected's currentHex value to the intersected object's hex
 
-                        //set intersected's actual color to red.
-                        // console.log("INTERSECTED AFTER CHANGE");
-                        
-                        // console.log(INTERSECTED.color.getStyle());
+                        //Need to find out if it is possible to get the vertices of the selected face.
+                        //console.log("INTERSECTED OBJECT");
+                        //console.log(INTERSECTED);
                     }
-
-                    //change the color of the closest face.
-                    // let selected = intersects[0];
-                    //var whiteColor = {r: 125, g: 125, b: 125};
-                    //var selectedColor = selected.face.color;
-                    //console.log(selected.face.color);
-
-                    //setRGB sets values between 0 and 1.0
-                    //selected.face.color.setRGB(1.0, 1.0, 1.0);
-                    //.setRGB(125,125,125);
-                    //var selectedColor = selected.face.color;
-                    // if(_.isEqual(selected.face.color, whiteColor)) {
-                    //     console.log("COLOR IS ALREADY WHITE");
-                    //     console.log(selected.face.color);
-                    // }
-                    //THIS PART IS ESSENTIAL TO UPDATE THE COLOR
-                    
-                    //colorNeedsUpdate = true;
-
-                    //Now that we can set the color, we need to get the original color of the face and set
-                    //it back to the original color after we're done scrolling over.
-
-                    //AKA If it it NO LONGER intersecting, change it back to its original color
-                    //so we need to grab an original color, and then check if the current color is != to the original.
                 }
                 else {
                     if (INTERSECTED) {
